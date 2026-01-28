@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -115,6 +117,8 @@ fun TaskItem(
     onDrop: () -> Unit,
     onDelete: () -> Unit
 ) {
+    var showDialog by remember { mutableStateOf(false) }
+
     val displayText = when (task.status) {
         TaskStatus.PENDING -> task.title
         TaskStatus.DONE -> "✔ ${task.title}"
@@ -126,9 +130,32 @@ fun TaskItem(
         modifier = Modifier
             .combinedClickable(
                 onClick = { onToggle() },
-                onLongClick =  { onDrop() }
+                onLongClick =  { showDialog = true }
             )
     )
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Task Actions") },
+            confirmButton = {
+                Button(onClick = {
+                    onDrop()
+                    showDialog = false
+                }) {
+                    Text("Drop")
+                }
+            },
+            dismissButton = {
+                Button(onClick = {
+                    onDelete()
+                    showDialog = false
+                }) {
+                    Text("Delete")
+                }
+            }
+        )
+    }
 }
 
 @Preview(showBackground = true)
