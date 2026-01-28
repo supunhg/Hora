@@ -1,4 +1,4 @@
-package com.supunhg.hora.ui.theme
+package com.supunhg.horus.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
