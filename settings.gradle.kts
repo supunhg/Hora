@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Hora"
+rootProject.name = "Horus"
 include(":app")
