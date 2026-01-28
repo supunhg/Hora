@@ -1,11 +1,12 @@
 package com.supunhg.hora
 
+import androidx.lifecycle.viewmodel.compose.viewModel
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -34,11 +35,14 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             HoraTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(
+                    modifier = Modifier.fillMaxSize()
+                ) { innerPadding ->
                     HomeScreen(
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
+
             }
         }
     }
@@ -57,52 +61,22 @@ data class Task(
 )
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
-
-    var tasks by remember {
-        mutableStateOf(
-            listOf(
-                Task(1, "Buy Groceries", TaskStatus.PENDING),
-                Task(2, "Study Kotlin", TaskStatus.PENDING),
-                Task(3, "Workout", TaskStatus.PENDING),
-            )
-        )
-    }
-
-    Column(modifier = modifier) {
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    viewModel: TaskViewModel = viewModel()
+) {
+    Column(modifier = Modifier.padding(16.dp)) {
         Text("Today Tasks")
 
         Spacer(modifier = Modifier.height(8.dp))
 
         LazyColumn {
-            items(
-                items = tasks,
-                key = { it.id }
-            ) { task ->
+            items(viewModel.tasks, key = { it.id }) { task ->
                 TaskItem(
                     task = task,
-                    onToggle = {
-                        tasks = tasks.map { current ->
-                            if (current.id == task.id) {
-                                current.copy(
-                                    status = if (current.status == TaskStatus.PENDING)
-                                        TaskStatus.DONE
-                                    else
-                                        TaskStatus.PENDING
-                                )
-                            } else current
-                        }
-                    },
-                    onDrop = {
-                        tasks = tasks.map { current ->
-                            if (current.id == task.id) {
-                                current.copy(status = TaskStatus.DROPPED)
-                            } else current
-                        }
-                    },
-                    onDelete = {
-                        tasks = tasks.filter { it.id != task.id }
-                    }
+                    onToggle = { viewModel.toggleTask(task.id) },
+                    onDrop = { viewModel.dropTask(task.id) },
+                    onDelete = { viewModel.deleteTask(task.id)}
                 )
             }
         }
@@ -138,6 +112,7 @@ fun TaskItem(
         AlertDialog(
             onDismissRequest = { showDialog = false },
             title = { Text("Task Actions") },
+            text = { Text("Choose what to do with this task.") },
             confirmButton = {
                 Button(onClick = {
                     onDrop()
