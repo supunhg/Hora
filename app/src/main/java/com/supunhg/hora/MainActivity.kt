@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,26 +40,75 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+enum class TaskStatus {
+    PENDING,
+    DONE,
+    DROPPED
+}
+
+data class Task(
+    val id: Int,
+    val title: String,
+    val status: TaskStatus
+)
+
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier) {
-    Column {
+
+    var tasks by remember {
+        mutableStateOf(
+            listOf(
+                Task(1, "Buy Groceries", TaskStatus.PENDING),
+                Task(2, "Study Kotlin", TaskStatus.PENDING),
+                Task(3, "Workout", TaskStatus.PENDING),
+            )
+        )
+    }
+
+    Column(modifier = modifier) {
         Text("Today Tasks")
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        TaskItem("Buy Groceries")
-        TaskItem("Study Kotlin")
-        TaskItem("Workout")
+        LazyColumn {
+            items(
+                items = tasks,
+                key = { it.id }
+            ) { task ->
+                TaskItem(
+                    task = task,
+                    onToggle = {
+                        tasks = tasks.map { current ->
+                            if (current.id == task.id) {
+                                current.copy(
+                                    status = if (current.status == TaskStatus.PENDING)
+                                        TaskStatus.DONE
+                                    else
+                                        TaskStatus.PENDING
+                                )
+                            } else current
+                        }
+                    }
+                )
+            }
+        }
     }
 }
 
 @Composable
-fun TaskItem(title: String) {
-    var isDone by remember { mutableStateOf(false) }
+fun TaskItem(
+    task: Task,
+    onToggle: () -> Unit
+) {
+    val displayText =
+        if (task.status == TaskStatus.DONE)
+            "✔ ${task.title}"
+        else
+            task.title
 
     Text(
-        text = if (isDone) "✔ $title" else title,
-        modifier = Modifier.clickable { isDone = !isDone }
+        text = displayText,
+        modifier = Modifier.clickable { onToggle() }
     )
 }
 
