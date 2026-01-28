@@ -4,7 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -88,6 +90,16 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                                 )
                             } else current
                         }
+                    },
+                    onDrop = {
+                        tasks = tasks.map { current ->
+                            if (current.id == task.id) {
+                                current.copy(status = TaskStatus.DROPPED)
+                            } else current
+                        }
+                    },
+                    onDelete = {
+                        tasks = tasks.filter { it.id != task.id }
                     }
                 )
             }
@@ -95,20 +107,27 @@ fun HomeScreen(modifier: Modifier = Modifier) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TaskItem(
     task: Task,
-    onToggle: () -> Unit
+    onToggle: () -> Unit,
+    onDrop: () -> Unit,
+    onDelete: () -> Unit
 ) {
-    val displayText =
-        if (task.status == TaskStatus.DONE)
-            "✔ ${task.title}"
-        else
-            task.title
+    val displayText = when (task.status) {
+        TaskStatus.PENDING -> task.title
+        TaskStatus.DONE -> "✔ ${task.title}"
+        TaskStatus.DROPPED -> "✖ ${task.title}"
+    }
 
     Text(
         text = displayText,
-        modifier = Modifier.clickable { onToggle() }
+        modifier = Modifier
+            .combinedClickable(
+                onClick = { onToggle() },
+                onLongClick =  { onDrop() }
+            )
     )
 }
 
